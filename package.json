@@ -1,5 +1,5 @@
 {
-  "name": "oj.AceEditor",
+  "name": "oj-ace-editor",
   "version": "0.0.1",
   "main": "src/oj.AceEditor.js",
   "description": "Ace Editor plugin for OJ",
