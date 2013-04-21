@@ -85,6 +85,7 @@ module.exports = function(oj,settings){
         'showPrintMargin',
         'readOnly',
         'fontSize',
+        'tabSize',
 
         'foldStyle',
         'selectionStyle',
@@ -312,6 +313,12 @@ module.exports = function(oj,settings){
             this._fontSize = v;
           }
         }
+      },
+
+      // Change tab size
+      tabSize: {
+        get: function(){ if(this.editor) return this.session.getTabSize(); },
+        set: function(v){ if(this.editor) this.session.setTabSize(v); }
       },
 
       // Change cursorPosition as object: {row:4, column:25}
