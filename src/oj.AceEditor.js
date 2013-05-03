@@ -1,10 +1,9 @@
-// Create a plugin by defining a function that accepts oj and
-// returns a map of extensions to oj
+// oj.AceEditor.js
 
 var debounce;
 
 module.exports = function(oj,settings){
-  // Initialize marked options
+
   if (typeof settings !== 'object')
     settings = {}
 
@@ -457,7 +456,6 @@ module.exports = function(oj,settings){
     }
   });
 
-  // oj.markdown
   return {AceEditor:AceEditor};
 
 };
