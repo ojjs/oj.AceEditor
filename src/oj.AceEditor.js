@@ -40,7 +40,7 @@ module.exports = function(oj,settings){
       }
 
       // Create el as relatively positioned div
-      this.el = oj.toDOM(function(){
+      this.ojml = oj(function(){
         var input;
         if(args.length > 0)
           input = args.join('\n');
@@ -217,7 +217,7 @@ module.exports = function(oj,settings){
 
       // Change width
       width: {
-        get: function(){ this.$el.css('width'); },
+        get: function(){ return this.$el.css('width'); },
         set: function(v){
           this.$el.css('width', v);
           if (this.editor)
@@ -227,7 +227,7 @@ module.exports = function(oj,settings){
 
       // Change height
       height: {
-        get: function(){ this.$el.css('height'); },
+        get: function(){ return this.$el.css('height'); },
         set: function(v){
           this.$el.css('height', v);
           if (this.editor)
