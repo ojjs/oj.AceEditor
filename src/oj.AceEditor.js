@@ -21,17 +21,19 @@ module.exports = function(oj,settings){
 
       // Default options
       var defaults = {
-        width: '400px',           // Default the height
-        height: '200px',          // Default the width
-        fontSize: 14,             // Default font size
-        showFoldWidgets: false,   // Hide fold widgets
-        showPrintMargin: false,   // Hide print margin
-        useSoftTabs: true,        // Change tabs to spaces
-        behaviorsEnabled: true,   // Enable quote and paren matching
-        foldStyle: 'markbegin',   // Default fold style when folds are unhidden
+        width: 400,                 // Default the height
+        height: 200,                // Default the width
+        fontSize: 14,                   // Default font size
+        showFoldWidgets: false,         // Hide fold widgets
+        showPrintMargin: false,         // Hide print margin
+        useSoftTabs: true,              // Change tabs to spaces
+        behaviorsEnabled: true,         // Enable quote and paren matching
+        foldStyle: 'markbegin',         // Default fold style when folds are unhidden
+        hScrollBarAlwaysVisible: false, // Prevent ugly scroll bars
+        vScrollBarAlwaysVisible: false,  // Ace doesn't have this property. This solution is imperfect.
 
         // Disable workers on local files because ace doesn't support this
-        useWorker: window.location.protocol != 'file:'
+        useWorker: false// window.location.protocol != 'file:'
       };
       // Default options if unspecified
       for (k in defaults) {
@@ -40,18 +42,24 @@ module.exports = function(oj,settings){
       }
 
       // Create el as relatively positioned div
-      this.ojml = oj(function(){
+      this.el = oj(function(){
         var input;
         if(args.length > 0)
           input = args.join('\n');
-        oj.div(input, {
-          style:{
-            position:'relative',
-            width:options.width,
-            height:options.height
+        oj.div(input, function(){
+          oj.div({c:'oj-AceEditor-editor'}, {style:{position:'absolute',width:options.width, height:options.height}});
+          },{
+            style:{
+              position:'relative',
+              width:options.width,
+              height:options.height
+            }
           }
-        });
+        );
+
       });
+
+      this.$editor = this.$('.oj-AceEditor-editor');
 
       // AceEditor is must be included by <script> tag. Help people understand.
       if(oj.isClient && ace == null)
@@ -60,7 +68,7 @@ module.exports = function(oj,settings){
       // Create editor
       if (oj.isClient && typeof ace != 'undefined') {
 
-        this.editor = ace.edit(this.el);
+        this.editor = ace.edit(this.$editor.get(0));
         this.editor.resize()
 
         // Register for editor changes
@@ -105,6 +113,7 @@ module.exports = function(oj,settings){
         'animatedScroll',
         'useWorker',
         'hScrollBarAlwaysVisible',
+        'vScrollBarAlwaysVisible',
         'fadeFoldWidgets',
 
         'behaviorsEnabled'
@@ -118,6 +127,10 @@ module.exports = function(oj,settings){
       // Pass on options. Args have been handled at this level.
       AceEditor.base.constructor.apply(this, [options]);
 
+      // Hide vertical scroll bar
+      this.$scrollbar = this.$('.ace_scrollbar');
+      this.$scroller = this.$('.ace_scroller');
+      this.$content = this.$('.ace_content');
     },
 
     properties: {
@@ -217,19 +230,19 @@ module.exports = function(oj,settings){
 
       // Change width
       width: {
-        get: function(){ return this.$el.css('width'); },
+        get: function(){ return this.$el.width(); },
         set: function(v){
-          this.$el.css('width', v);
-          if (this.editor)
-            this.editor.resize();
+          this.$el.width(v)
+          this.updateWidth()
         }
       },
 
       // Change height
       height: {
-        get: function(){ return this.$el.css('height'); },
+        get: function(){ return this.$el.height(); },
         set: function(v){
-          this.$el.css('height', v);
+          this.$el.height(v);
+          this.$editor.height(v);
           if (this.editor)
             this.editor.resize();
         }
@@ -444,15 +457,79 @@ module.exports = function(oj,settings){
         set: function(v){ if(this.editor) this.renderer.setHScrollBarAlwaysVisible(v); }
       },
 
+      // Turn horizontal scrollbar on permanently
+      vScrollBarAlwaysVisible: {
+        get: function(){ return this._vScrollBarAlwaysVisible || false; },
+        set: function(v){
+          this._vScrollBarAlwaysVisible = v;
+          if (this.$scrollbar != null) {
+            if (v) {
+              this.$scrollbar.show();
+              this.updateWidth();
+            } else {
+              this.$scrollbar.hide()
+              this.updateWidth();
+            }
+          }
+        }
+      },
+
       // Fade fold widgets that allow code blocks to be collapsed
       fadeFoldWidgets: {
         get: function(){ if(this.editor) return this.editor.getFadeFoldWidgets(); },
         set: function(v){ if(this.editor) this.editor.setFadeFoldWidgets(v); }
-      }
+      },
 
+      $scrollbar: null,
+      $scroller: null,
+      $content: null
     },
 
     methods: {
+
+      // When the view changes
+      viewChanged: function(){
+        AceEditor.base.inserted.apply(this, arguments);
+      },
+
+      // When inserted in the dom
+      inserted: function(){
+        AceEditor.base.inserted.apply(this, arguments);
+
+        // Scroll visiblility can only be triggered once inserted
+        this.vScrollBarAlwaysVisible = this.vScrollBarAlwaysVisible
+      },
+
+      // The width is dependent on if vertical scroll is turned off
+      updateWidth: function(){
+          // Get the width
+          var w = this.width;
+
+          // The editor width is bigger if there is no scroll bar
+          widthScroll = this.vScrollBarAlwaysVisible ? 0 : this.scrollWidth();
+          this.$editor.width(w + widthScroll);
+
+          // Trigger the editor to change size
+          if (this.editor)
+            this.editor.resize();
+      },
+
+      // Dynamically calculate the scroll width by measuring the difference
+      // Cache the result
+      scrollWidth: function(){
+        if (this._scrollWidth != null)
+          return this._scrollWidth;
+        if (this.isInserted) {
+          var div = $('<div style="width:50px;height:50px;overflow:hidden;position:absolute;top:-200px;left:-200px;"><div style="height:100px;"></div>');
+          // Append our div, do our calculation and then remove it
+          $('body').append(div);
+          var w1 = $('div', div).innerWidth();
+          div.css('overflow-y', 'scroll');
+          var w2 = $('div', div).innerWidth();
+          $(div).remove();
+          return this._scrollWidth = (w1 - w2);
+        }
+      }
     }
   });
 
@@ -460,7 +537,7 @@ module.exports = function(oj,settings){
 
 };
 
-// Debounce from underscore to remove the only underscore dependency
+// Debounce from underscore to remowe the only underscore dependency
 // http://underscorejs.org/#debounce
 debounce = function(wait, func, immediate) {
   var timeout, result;
