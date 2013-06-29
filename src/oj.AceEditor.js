@@ -7,7 +7,7 @@ module.exports = function(oj,settings){
   if (typeof settings !== 'object')
     settings = {}
 
-  var AceEditor = oj.type('AceEditor', {
+  var AceEditor = oj.createType('AceEditor', {
     base: oj.ModelKeyView,
 
     constructor: function(){
