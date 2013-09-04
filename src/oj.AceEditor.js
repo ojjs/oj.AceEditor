@@ -1,8 +1,14 @@
 // oj.AceEditor.js
 
+(function(){
+
 var debounce;
 
-module.exports = function(oj,settings){
+var plugin = function(oj,settings){
+
+  // Client side the AceEditor must be included by <script> tag. Help people understand.
+  if (oj.isClient)
+    oj.dependency('ace');
 
   if (typeof settings !== 'object')
     settings = {}
@@ -11,7 +17,7 @@ module.exports = function(oj,settings){
     base: oj.ModelKeyView,
 
     constructor: function(){
-      var union = oj.argumentsUnion(arguments);
+      var union = oj.unionArguments(arguments);
       var options = union.options;
       var args = union.args;
 
@@ -40,14 +46,10 @@ module.exports = function(oj,settings){
         if (options[k] == null)
           options[k] = defaults[k];
       }
-
       // Create el as relatively positioned div
       this.el = oj(function(){
-        var input;
-        if(args.length > 0)
-          input = args.join('\n');
-        oj.div(input, function(){
-          oj.div({c:'oj-AceEditor-editor'}, {style:{position:'absolute',width:options.width, height:options.height}});
+        oj.div(function(){
+          oj.div({c:'oj-AceEditor-editor', style:{position:'absolute',width:options.width, height:options.height}});
           },{
             style:{
               position:'relative',
@@ -60,10 +62,6 @@ module.exports = function(oj,settings){
       });
 
       this.$editor = this.$('.oj-AceEditor-editor');
-
-      // AceEditor is must be included by <script> tag. Help people understand.
-      if(oj.isClient && ace == null)
-        throw new Error('oj.AceEditor: `ace` global not found. Include the editor with a <script> tag!');
 
       // Create editor
       if (oj.isClient && typeof ace != 'undefined') {
@@ -124,6 +122,9 @@ module.exports = function(oj,settings){
           this[prop] = oj.argumentShift(options, prop);
       }
 
+      // Value is property or first argument
+      value = oj.argumentShift(options, 'value') || args.join('\n');
+
       // Pass on options. Args have been handled at this level.
       AceEditor.base.constructor.apply(this, [options]);
 
@@ -131,6 +132,9 @@ module.exports = function(oj,settings){
       this.$scrollbar = this.$('.ace_scrollbar');
       this.$scroller = this.$('.ace_scroller');
       this.$content = this.$('.ace_content');
+
+      if (value)
+        this.value = value;
     },
 
     properties: {
@@ -144,7 +148,8 @@ module.exports = function(oj,settings){
           if(this.session) {
             // Save the location of the cursor
             var pos = this.cursorPosition;
-            this.session.setValue(v);
+            this.session.setValue(v)
+
             // Restore the location of the cursor
             this.cursorPosition = pos;
           }
@@ -392,8 +397,15 @@ module.exports = function(oj,settings){
 
       // Selection style options: 'line' or 'text'
       selectionStyle: {
-        get: function(){ if(this.editor) return this.editor.getSelectionStyle(); },
-        set: function(v){ if(this.editor) this.editor.setSelectionStyle(v); }
+        get: function(){ if(this.editor) return this.editor.getSelectionStyle() || 'line';
+        },
+        set: function(v){
+          if(this.editor) {
+            if (v !== 'line' && v !== 'text')
+              throw new Error("oj.AceEditor: selectionStyle expects 'line' or 'text'")
+            this.editor.setSelectionStyle(v);
+          }
+        }
       },
 
       // Fold style options: 'manual', markbegin' or 'markbeginend'
@@ -496,6 +508,7 @@ module.exports = function(oj,settings){
       inserted: function(){
         AceEditor.base.inserted.apply(this, arguments);
 
+        this.value = this.value
         // Scroll visiblility can only be triggered once inserted
         this.vScrollBarAlwaysVisible = this.vScrollBarAlwaysVisible
       },
@@ -554,3 +567,13 @@ debounce = function(wait, func, immediate) {
     return result;
   };
 };
+
+// Export in OJ
+if (typeof oj != 'undefined')
+  oj.use(plugin);
+
+// Export in node
+if (typeof module != 'undefined' && typeof module.exports != 'undefined')
+  module.exports = plugin;
+
+})(this);
