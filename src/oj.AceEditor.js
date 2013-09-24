@@ -7,8 +7,8 @@ var debounce;
 var plugin = function(oj,settings){
 
   // Client side the AceEditor must be included by <script> tag. Help people understand.
-  if (oj.isClient)
-    oj.dependency('ace');
+  if (oj.isClient && !oj.isDefined(ace))
+    throw new Error('oj.AceEditor: ace not found')
 
   if (typeof settings !== 'object')
     settings = {}
