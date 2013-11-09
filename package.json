@@ -1,6 +1,6 @@
 {
   "name": "oj-ace-editor",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "main": "oj.AceEditor.js",
   "description": "Ace Editor plugin for OJ",
   "homepage": "http://ojjs.org",
