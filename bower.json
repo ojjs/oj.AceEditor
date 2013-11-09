@@ -1,0 +1,25 @@
+{
+  "name": "oj-ace-editor",
+  "version": "0.0.7",
+  "main": "oj.AceEditor.js",
+  "homepage": "http://ojjs.org/plugins.html#AceEditor",
+  "authors": [
+    "Evan Moran <evan@evanmoran.com>"
+  ],
+  "description": "Ace Editor plugin for OJ",
+  "keywords": [
+    "oj",
+    "plugin",
+    "ace",
+    "editor"
+  ],
+  "license": "MIT",
+  "ignore": [
+    ".DS_Store",
+    ".git",
+    ".gitignore",
+    "bower_components",
+    "package.json",
+    "node_modules"
+  ]
+}

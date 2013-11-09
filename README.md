@@ -1,4 +1,4 @@
 oj.AceEditor
 ============
 
-oj plugin for Ace
+Ace Editor plugin for OJ

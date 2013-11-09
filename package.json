@@ -1,11 +1,12 @@
 {
   "name": "oj-ace-editor",
-  "version": "0.0.5",
-  "main": "src/oj.AceEditor.js",
+  "version": "0.0.7",
+  "main": "oj.AceEditor.js",
   "description": "Ace Editor plugin for OJ",
   "homepage": "http://ojjs.org",
   "keywords": [
     "oj",
+    "plugin",
     "ace",
     "editor"
   ],
